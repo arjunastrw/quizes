@@ -15,7 +15,7 @@ type User struct {
 
 // Save user Register
 // Save adalah fungsi untuk menyimpan data pengguna ke database.
-func Save(db *sql.DB, user *User) error {
+func (s *User) SaveUser(db *sql.DB, user *User) error {
 	_, err := db.Query("INSERT INTO users (nama, email, password, role) VALUES (?, ?, ?, ?)",
 		user.Nama, user.Email, user.Password, user.Role)
 	if err != nil {

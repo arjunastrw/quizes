@@ -15,7 +15,7 @@ type Quiz struct {
 }
 
 // Save menyimpan data quiz ke dalam database.
-func (q *Quiz) Save(db *sql.DB) error {
+func (q *Quiz) SaveQuiz(db *sql.DB) error {
 	_, err := db.Exec("INSERT INTO quiz (judul, deskripsi, waktu_mulai, waktu_selesai) VALUES (?, ?, ?, ?)", q.Judul, q.Deskripsi, q.WaktuMulai, q.WaktuSelesai)
 	return err
 }

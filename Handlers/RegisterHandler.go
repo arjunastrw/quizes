@@ -2,14 +2,10 @@ package Handlers
 
 import (
 	"database/sql"
-	"github.com/golang-jwt/jwt/v5"
-	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"mini-project/Middleware"
 	"mini-project/Model"
+	"net/http"
 )
 
 // RegisterHandler adalah fungsi untuk menangani permintaan registrasi pengguna.
@@ -21,6 +17,7 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
+		// validasi data
 		if newUser.Nama == "" || newUser.Email == "" || newUser.Password == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Nama, email, dan password diperlukan"})
 			return
@@ -40,27 +37,15 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 		}
 		newUser.Password = string(hashedPassword)
 
-		err = newUser.Save(db * sql.DB)
+		err = newUser.SaveUser(db, &newUser)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 			return
 		}
 
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"user_id": newUser.Id,
-			"exp":     time.Now().Add(time.Hour * 24).Unix(),
-		})
-
-		tokenString, err := token.SignedString(Middleware.SecretKey)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create JWT token"})
-			return
-		}
-
 		response := gin.H{
-			"message": "Pengguna berhasil diregistrasi",
-			"user_id": newUser.Id,
-			"token":   tokenString,
+			"message":   "Pengguna berhasil diregistrasi",
+			"userEmail": newUser.Email,
 		}
 		c.JSON(http.StatusOK, response)
 	}
