@@ -50,7 +50,13 @@ func GetAllQuiz(db *sql.DB) ([]Quiz, error) {
 	return quizzes, nil
 }
 
+// Method Update Quiz
 func UpdateQuiz(db *sql.DB, id int, judul, deskripsi string) error {
 	_, err := db.Exec("UPDATE quiz SET judul = ?, deskripsi = ? WHERE id = ?", judul, deskripsi, id)
+	return err
+}
+
+func DeleteQuiz(db *sql.DB, id int) error {
+	_, err := db.Exec("DELETE FROM quiz WHERE id = ?", id)
 	return err
 }

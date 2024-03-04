@@ -1,9 +1,10 @@
-package Handlers
+package UserHandlers
 
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"mini-project/Model"
 	"net/http"
 )
@@ -36,6 +37,7 @@ func RegisterHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 		newUser.Password = string(hashedPassword)
+		log.Print(newUser)
 
 		err = newUser.SaveUser(db, &newUser)
 		if err != nil {
