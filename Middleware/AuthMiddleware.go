@@ -12,7 +12,7 @@ import (
 var SecretKey = "inikuncinya"
 
 func AuthMiddleware(ctx *gin.Context) {
-	if ctx.FullPath() != "/api/v1/login" && ctx.FullPath() != "/api/v1/register" {
+	if ctx.FullPath() != "/api/v1/login" && ctx.FullPath() != "/api/v1/register" && ctx.FullPath() != "/api/v1/logout" && ctx.FullPath() != "/api/v1/get-quiz" {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to parse or verify token"})

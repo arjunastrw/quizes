@@ -2,7 +2,7 @@ package Handlers
 
 import (
 	"database/sql"
-	"mini-project/Middleware"
+	"log"
 	"net/http"
 	"time"
 
@@ -54,18 +54,13 @@ func CreateQuizHandler(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-func GetAllQuiz(db *sql.DB) gin.HandlerFunc {
+func GetAllQuizHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Lakukan pengecekan otorisasi menggunakan middleware AdminAuth
-		Middleware.AuthMiddleware(c)
-		if c.Writer.Written() {
-			return
-		}
-
 		// Dapatkan daftar kuis dari database
 		quizes, err := Model.GetAllQuiz(db)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get quizes"})
+			log.Println(err)
+			c.JSON(500, gin.H{"error": "Failed to get quizes"})
 			return
 		}
 

@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"mini-project/Middleware"
 	"mini-project/Model"
 	"net/http"
@@ -32,6 +33,7 @@ func LoginHandler(db *sql.DB) gin.HandlerFunc {
 		// Cari pengguna berdasarkan email
 		user, err := Model.GetUserByEmail(db, email)
 		if err != nil {
+			log.Println(err)
 			c.JSON(500, gin.H{"error": "Please Contact Support"})
 			return
 		}
