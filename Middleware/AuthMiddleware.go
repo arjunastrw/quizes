@@ -1,64 +1,53 @@
 package Middleware
 
 import (
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"log"
+	"mini-project/Model"
 	"net/http"
+	"strings"
 )
 
 var SecretKey = "inikuncinya"
 
-func AdminAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Dapatkan token JWT dari header Authorization
-		tokenString := c.GetHeader("Authorization")
+func AuthMiddleware(ctx *gin.Context) {
+	if ctx.FullPath() != "/api/v1/login" && ctx.FullPath() != "/api/v1/register" {
+		authHeader := ctx.GetHeader("Authorization")
+		if authHeader == "" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to parse or verify token"})
+			ctx.Abort()
+			return
+		}
 
-		// Parse dan verifikasi token JWT
-		claims, err := ParseJWT(tokenString)
+		authArr := strings.Split(authHeader, " ")
+		if len(authArr) != 2 {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		}
+
+		if authArr[0] != "Bearer" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid bearer token"})
+		}
+
+		tokenStr := authArr[1]
+
+		var authClaim Model.AuthClaimJWT
+
+		token, err := jwt.ParseWithClaims(tokenStr, &authClaim, func(token *jwt.Token) (interface{}, error) {
+			return []byte(SecretKey), nil
+		})
+
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to parse or verify token"})
-			c.Abort()
-			return
+			panic(err.Error())
 		}
 
-		// Ambil role pengguna dari klaim token
-		role, ok := claims["role"].(string)
-		if !ok || role != "admin" {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Only admins are allowed to access this resource"})
-			c.Abort()
-			return
+		if !token.Valid {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 		}
 
-		// Jika pengguna memiliki peran admin, lanjutkan pemrosesan berikutnya
-		c.Next()
+		ctx.Set("Role", authClaim.Role)
+		log.Println(authClaim)
+		log.Println(token)
+		ctx.Next()
 	}
-}
-
-func ParseJWT(tokenString string) (jwt.MapClaims, error) {
-	// Parse dan verifikasi token JWT
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Lakukan validasi metode tanda tangan token di sini
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, jwt.ErrSignatureInvalid
-		}
-
-		// Kembalikan kunci rahasia yang digunakan untuk menandatangani token
-		return []byte(SecretKey), nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Periksa kesalahan saat parsing token
-	if !token.Valid {
-		return nil, jwt.ErrInvalidKey
-	}
-
-	// Ambil klaim dari token
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, jwt.ErrInvalidKey
-	}
-
-	return claims, nil
 }

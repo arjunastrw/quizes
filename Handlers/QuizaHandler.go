@@ -14,21 +14,14 @@ import (
 func CreateQuizHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Ambil informasi pengguna dari konteks
-		user, exists := c.Get("User")
+		user, exists := c.Get("Role")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User information not found in context"})
 			return
 		}
 
-		// Cast informasi pengguna ke dalam struktur yang sesuai
-		userInfo, ok := user.(Model.User)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to cast user information"})
-			return
-		}
-
-		// Periksa apakah peran pengguna adalah admin
-		if userInfo.Role != "admin" {
+		// Cek apakah pengguna adalah admin
+		if user != "Admin" {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Only admins are allowed to access this resource"})
 			return
 		}
@@ -64,7 +57,10 @@ func CreateQuizHandler(db *sql.DB) gin.HandlerFunc {
 func GetAllQuiz(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Lakukan pengecekan otorisasi menggunakan middleware AdminAuth
-		Middleware.AdminAuth()(c)
+		Middleware.AuthMiddleware(c)
+		if c.Writer.Written() {
+			return
+		}
 
 		// Dapatkan daftar kuis dari database
 		quizes, err := Model.GetAllQuiz(db)

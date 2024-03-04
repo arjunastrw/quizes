@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"mini-project/Config"
 	"mini-project/Handlers"
+	"mini-project/Middleware"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 
 	// Membuat instance Gin Engine
 	router := gin.Default()
+	router.Use(Middleware.AuthMiddleware)
 
 	// Menambahkan rute untuk endpoint registrasi
 	//route untuk register
@@ -34,10 +36,10 @@ func main() {
 	})
 
 	//route untuk membuat quiz
-	router.POST("/create-quiz", Handlers.CreateQuizHandler(db))
+	router.POST("/api/v1/create-quiz", Handlers.CreateQuizHandler(db))
 
 	// route untuk get quiz
-	router.GET("/get-quiz", Handlers.GetAllQuiz(db))
+	router.GET("/api/v1/get-quiz", Handlers.GetAllQuiz(db))
 
 	// Menjalankan server HTTP
 	router.Run(":8080")

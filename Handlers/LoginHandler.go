@@ -2,14 +2,12 @@ package Handlers
 
 import (
 	"database/sql"
-	"net/http"
-	"time"
-
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"mini-project/Middleware" // Menambahkan impor package Middleware
+	"mini-project/Middleware"
 	"mini-project/Model"
+	"net/http"
 )
 
 // LoginHandler adalah fungsi untuk menangani permintaan login pengguna.
@@ -52,24 +50,18 @@ func LoginHandler(db *sql.DB) gin.HandlerFunc {
 		}
 
 		// Buat token JWT untuk pengguna yang berhasil login
-		token := jwt.New(jwt.SigningMethodHS256)
-		claims := token.Claims.(jwt.MapClaims)
-		claims["user_id"] = user.Id
-		claims["name"] = user.Nama
-		claims["email"] = user.Email
-		claims["role"] = user.Role
-		claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // Token berlaku selama 24 jam
+		tokenClaim := Model.AuthClaimJWT{
+			Role: user.Role,
+		}
 
 		// Tandatangani token JWT menggunakan secret key
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaim)
+
 		tokenString, err := token.SignedString([]byte(Middleware.SecretKey))
-		if err != nil {
-			c.JSON(500, gin.H{"error": "Failed to generate token"})
-			return
-		}
 
 		// Beri tanggapan kepada pengguna yang berhasil login
 		response := map[string]interface{}{
-			"message": "Login successfuly",
+			"message": "Login successfully",
 			"token":   tokenString,
 		}
 		c.JSON(200, response)
